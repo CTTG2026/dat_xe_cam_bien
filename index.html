@@ -13,11 +13,11 @@
     --cream:#fffaf0;
     --ink:#2b2118;
     --line:#e7d9bd;
-    --b01:#8a5a15;
+    --b01:#6b4310;
     --b01-bg:#fbead0;
-    --b:#a5271f;
+    --b:#7a1913;
     --b-bg:#fbe2df;
-    --c1:#1f5c66;
+    --c1:#123c43;
     --c1-bg:#dcf0f2;
   }
   *{box-sizing:border-box;}
@@ -134,12 +134,13 @@
     font-size:0.8rem;
   }
   .time-col{
-    width:78px;
+    width:56px;
     background:#faf5e8;
-    font-weight:600;
+    font-weight:700;
     color:var(--brown);
-    font-size:0.75rem;
-    padding:6px 4px !important;
+    font-size:0.68rem;
+    padding:6px 2px !important;
+    white-space:nowrap;
     position:sticky;
     left:0;
     z-index:2;
@@ -149,15 +150,15 @@
   th.group-b{ background:var(--b-bg); color:var(--b); }
   th.group-c1{ background:var(--c1-bg); color:var(--c1); }
   th.car-head{
-    padding:12px 6px;
-    font-size:1.05rem;
-    font-weight:800;
+    padding:14px 8px;
+    font-size:1.2rem;
+    font-weight:900;
     position:relative;
-    min-width:130px;
+    min-width:150px;
   }
   th.hang-head{
-    padding:10px 6px;
-    font-size:1.25rem;
+    padding:12px 6px;
+    font-size:1.4rem;
     font-weight:900;
     letter-spacing:0.5px;
   }
@@ -266,9 +267,9 @@
     .btn-label{ display:none; }
     .legend{ padding:8px 12px; gap:10px; font-size:0.75rem; }
     .grid-wrap{ padding:8px; }
-    .time-col{ width:58px; font-size:0.68rem; }
-    th.car-head{ font-size:0.85rem; padding:8px 6px; min-width:70px; }
-    th.hang-head{ font-size:1rem; padding:8px 4px; }
+    .time-col{ width:50px; font-size:0.6rem; }
+    th.car-head{ font-size:0.95rem; padding:10px 6px; min-width:88px; }
+    th.hang-head{ font-size:1.1rem; padding:10px 4px; }
     td.booked{ font-size:0.8rem; }
     .modal{ padding:16px 14px; max-width:100%; }
   }
@@ -526,7 +527,7 @@ function renderGrid(){
   for(let s=0; s<slotCount; s++){
     const isHour = ALL_SLOTS[s].endsWith(':00');
     tbody += '<tr'+(isHour?' class="hour-mark"':'')+'>';
-    tbody += '<td class="time-col">'+ALL_SLOTS[s]+' - '+ALL_SLOTS[s+1]+'</td>';
+    tbody += '<td class="time-col">'+toShortTime(ALL_SLOTS[s])+'-'+toShortTime(ALL_SLOTS[s+1])+'</td>';
     columns.forEach((col, idx)=>{
       const isGroupStart = idx>0 && columns[idx-1].hang !== col.hang;
       const gStyle = isGroupStart ? 'border-left:3px solid #b89a5e;' : '';
