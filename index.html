@@ -146,6 +146,15 @@
     z-index:2;
   }
   thead th{ font-weight:800; }
+  .time-col-end{ border-left:3px solid #b89a5e; }
+  @media (min-width:601px){
+    thead th{ position:sticky; z-index:3; }
+    thead tr:first-child th{ top:0; }
+    thead th.time-col, thead th.time-col-end{ z-index:6; }
+  }
+  @media (max-width:600px){
+    .time-col-end{ display:none; }
+  }
   th.group-b01{ background:var(--b01-bg); color:var(--b01); }
   th.group-b{ background:var(--b-bg); color:var(--b); }
   th.group-c1{ background:var(--c1-bg); color:var(--c1); }
@@ -496,6 +505,7 @@ function renderGrid(){
     const count = carsConfig[h].length;
     thead += '<th class="hang-head group-'+classMap[h]+'" colspan="'+count+'">Hạng '+h+'</th>';
   });
+  thead += '<th class="time-col time-col-end" rowspan="2">Khung giờ</th>';
   thead += '</tr><tr>';
   columns.forEach((col, idx)=>{
     const label = col.xeSo ? ('Xe '+col.xeSo) : '(trống)';
@@ -550,11 +560,24 @@ function renderGrid(){
         escapeHtml(b.giaoVien) + (b.ghiChu ? '<span class="note">'+escapeHtml(b.ghiChu)+'</span>' : '') +
         '</td>';
     });
+    tbody += '<td class="time-col time-col-end">'+toShortTime(ALL_SLOTS[s])+'-'+toShortTime(ALL_SLOTS[s+1])+'</td>';
     tbody += '</tr>';
   }
   tbody += '</tbody>';
 
   table.innerHTML = thead + tbody;
+
+  // Căn đúng vị trí "dính" (sticky) của hàng tiêu đề số xe ngay bên dưới
+  // hàng tiêu đề Hạng khi cuộn dọc (chỉ có hiệu lực trên máy tính, xem CSS
+  // @media min-width:601px — trên điện thoại không bật sticky nên không
+  // ảnh hưởng gì).
+  requestAnimationFrame(()=>{
+    const theadRows = table.querySelectorAll('thead tr');
+    if(theadRows.length===2){
+      const h1 = theadRows[0].getBoundingClientRect().height;
+      theadRows[1].querySelectorAll('th').forEach(th=> th.style.top = h1+'px');
+    }
+  });
 
   // gắn sự kiện sửa số xe
   table.querySelectorAll('.edit-icon').forEach(el=>{
