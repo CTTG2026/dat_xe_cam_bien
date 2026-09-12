@@ -67,6 +67,18 @@
     box-shadow:0 2px 4px rgba(226,69,42,0.3);
   }
   #btnAdd:hover{ background:#c9391f; }
+  .btn-secondary{
+    background:#fff;
+    color:var(--brown);
+    border:1px solid var(--gold);
+    padding:10px 16px;
+    border-radius:8px;
+    font-weight:600;
+    font-size:0.95rem;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .btn-secondary:hover{ background:#fdf6ea; }
   .date-scroll{
     display:flex;
     gap:8px;
@@ -127,23 +139,36 @@
     font-weight:600;
     color:var(--brown);
     font-size:0.75rem;
-    padding:4px !important;
+    padding:6px 4px !important;
+    position:sticky;
+    left:0;
+    z-index:2;
   }
+  thead th{ position:sticky; z-index:3; }
+  thead tr:first-child th{ top:0; height:44px; }
+  thead tr:nth-child(2) th{ top:44px; }
+  thead tr:first-child th.time-col, thead tr:nth-child(2) th.time-col{ z-index:5; }
   th.group-b01{ background:var(--b01-bg); color:var(--b01); }
   th.group-b{ background:var(--b-bg); color:var(--b); }
   th.group-c1{ background:var(--c1-bg); color:var(--c1); }
   th.car-head{
-    padding:6px 4px;
-    font-size:0.85rem;
-    font-weight:700;
+    padding:12px 10px;
+    font-size:1.05rem;
+    font-weight:800;
     position:relative;
+    min-width:92px;
+    border-bottom-width:3px;
   }
   th.hang-head{
-    padding:6px;
-    font-size:0.9rem;
-    font-weight:800;
+    padding:12px 6px;
+    font-size:1.25rem;
+    font-weight:900;
     letter-spacing:0.5px;
+    border-bottom-width:3px;
   }
+  th.hang-head.group-b01{ border-bottom-color:var(--b01); }
+  th.hang-head.group-b{ border-bottom-color:var(--b); }
+  th.hang-head.group-c1{ border-bottom-color:var(--c1); }
   .edit-icon{
     cursor:pointer;
     font-size:0.7rem;
@@ -161,6 +186,7 @@
     padding:4px 6px !important;
     line-height:1.25;
     vertical-align:middle;
+    position:relative;
   }
   td.booked .note{
     display:block;
@@ -168,6 +194,21 @@
     font-size:0.72rem;
     opacity:0.92;
     margin-top:2px;
+  }
+  .edit-booking{
+    position:absolute;
+    top:3px;
+    right:3px;
+    width:20px;
+    height:20px;
+    background:rgba(255,255,255,0.88);
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:11px;
+    cursor:pointer;
+    line-height:1;
   }
   .hour-mark td, .hour-mark th{ border-top:2px solid #c9b98a; }
   /* modal */
@@ -202,7 +243,41 @@
   .msg{ font-size:0.85rem; color:var(--red); margin-top:4px; min-height:18px; }
   .confirm-box p{ margin:4px 0; font-size:0.9rem; }
   .confirm-box b{ color:var(--brown); }
+  .history-modal{ max-width:480px; }
+  .history-list{ max-height:60vh; overflow-y:auto; margin-top:4px; }
+  .history-item{
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:10px 12px;
+    margin-bottom:8px;
+    font-size:0.85rem;
+  }
+  .history-item .h-top{
+    display:flex;
+    justify-content:space-between;
+    font-size:0.72rem;
+    color:#a08a6a;
+    margin-bottom:4px;
+  }
+  .history-item .h-main{ font-weight:700; color:var(--brown); font-size:0.95rem; }
+  .history-item .h-sub{ font-size:0.82rem; color:#555; margin-top:2px; }
+  .history-empty{ text-align:center; color:#a08a6a; padding:20px; font-size:0.9rem; }
   footer{ text-align:center; padding:14px; font-size:0.75rem; color:#a08a6a; }
+
+  @media (max-width:600px){
+    header{ padding:10px 12px; gap:10px; }
+    header img{ height:40px; }
+    header h1{ font-size:1rem; }
+    .toolbar{ padding:10px 12px; gap:10px; }
+    #btnAdd{ padding:10px 14px; font-size:0.9rem; flex:0 0 auto; }
+    .legend{ padding:8px 12px; gap:10px; font-size:0.75rem; }
+    .grid-wrap{ padding:8px; }
+    .time-col{ width:58px; font-size:0.68rem; }
+    th.car-head{ font-size:0.85rem; padding:8px 6px; min-width:70px; }
+    th.hang-head{ font-size:1rem; padding:8px 4px; }
+    td.booked{ font-size:0.8rem; }
+    .modal{ padding:16px 14px; max-width:100%; }
+  }
 </style>
 </head>
 <body>
@@ -214,6 +289,7 @@
 
 <div class="toolbar">
   <button id="btnAdd">+ Đăng ký xe</button>
+  <button id="btnHistory" class="btn-secondary">🕘 Lịch sử</button>
   <div class="date-scroll" id="dateScroll"></div>
 </div>
 
@@ -232,7 +308,7 @@
 <!-- Modal đăng ký -->
 <div class="overlay" id="overlayForm">
   <div class="modal">
-    <h2>Đăng ký xe cảm biến</h2>
+    <h2 id="formTitle">Đăng ký xe cảm biến</h2>
     <div class="field">
       <label>Ngày đăng ký</label>
       <input type="date" id="fDate">
@@ -272,6 +348,7 @@
     <div class="msg" id="formMsg"></div>
     <div class="modal-actions">
       <button class="btn btn-cancel" id="btnCancelForm">Huỷ</button>
+      <button class="btn" id="btnDeleteBooking" style="background:#fff;color:var(--red);border:1px solid var(--red);display:none;">Xoá lịch</button>
       <button class="btn btn-confirm" id="btnConfirmForm">Xác nhận</button>
     </div>
   </div>
@@ -304,6 +381,17 @@
   </div>
 </div>
 
+<!-- Modal lịch sử đăng ký -->
+<div class="overlay" id="overlayHistory">
+  <div class="modal history-modal">
+    <h2>Lịch sử đăng ký (20 gần nhất)</h2>
+    <div class="history-list" id="historyList"></div>
+    <div class="modal-actions">
+      <button class="btn btn-confirm" id="btnCloseHistory">Đóng</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ================== CẤU HÌNH ================== */
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbziulsQsBzeJ4I0dnkj4uzd7tLXlOTLAOapwEDqEYZV2bVvTzvHhVzhmOnt80bX6wVZrw/exec';
@@ -311,6 +399,11 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbziulsQsBzeJ4I0
 /* ================== TIỆN ÍCH THỜI GIAN ================== */
 function pad(n){ return n.toString().padStart(2,'0'); }
 function toDateStr(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function toDisplayDate(yyyyMmDd){
+  const parts = (yyyyMmDd||'').split('-');
+  if(parts.length!==3) return yyyyMmDd;
+  return parts[2]+'/'+parts[1]+'/'+parts[0];
+}
 function genSlots(){
   // Mốc giờ từ 05:00 đến 22:00, mỗi 15 phút (dùng để hiển thị dropdown & lưới)
   const out = [];
@@ -449,6 +542,7 @@ function renderGrid(){
       const b = currentBookings[bi];
       const color = colorForName(b.giaoVien || '');
       tbody += '<td class="booked" rowspan="'+span+'" style="background:'+color+'">'+
+        '<span class="edit-booking" data-id="'+b.id+'" title="Sửa / xoá lịch">✏️</span>'+
         escapeHtml(b.giaoVien) + (b.ghiChu ? '<span class="note">'+escapeHtml(b.ghiChu)+'</span>' : '') +
         '</td>';
     });
@@ -464,6 +558,16 @@ function renderGrid(){
       ev.stopPropagation();
       const hang = el.dataset.hang, viTri = el.dataset.vitri, xeSo = el.dataset.xeso;
       requireAdmin(()=> promptEditCar(hang, viTri, xeSo));
+    };
+  });
+
+  // gắn sự kiện sửa/xoá lịch đã đặt
+  table.querySelectorAll('.edit-booking').forEach(el=>{
+    el.onclick = (ev)=>{
+      ev.stopPropagation();
+      const id = el.dataset.id;
+      const booking = currentBookings.find(b=>b.id===id);
+      if(booking) requireAdmin(()=> openForm(booking));
     };
   });
 }
@@ -508,22 +612,63 @@ document.getElementById('btnConfirmPass').onclick = ()=>{
   });
 };
 
-/* ================== FORM ĐĂNG KÝ ================== */
-document.getElementById('btnAdd').onclick = ()=> requireAdmin(openForm);
+/* ================== FORM ĐĂNG KÝ / SỬA ================== */
+let editingId = null;
 
-function openForm(){
+document.getElementById('btnAdd').onclick = ()=> requireAdmin(()=> openForm(null));
+
+function openForm(booking){
+  editingId = booking ? booking.id : null;
   const today = new Date();
   const todayStr = toDateStr(today);
   const dateInput = document.getElementById('fDate');
   dateInput.min = todayStr;
-  dateInput.value = (selectedDate >= todayStr) ? selectedDate : todayStr;
+
+  document.getElementById('formTitle').textContent = booking ? 'Sửa lịch đặt xe' : 'Đăng ký xe cảm biến';
+  document.getElementById('btnDeleteBooking').style.display = booking ? 'block' : 'none';
+
+  if(booking){
+    dateInput.value = booking.ngay;
+  } else {
+    dateInput.value = (selectedDate >= todayStr) ? selectedDate : todayStr;
+  }
+
   fillTimeOptions();
   fillHangOptions();
-  document.getElementById('fGiaoVien').value = '';
-  document.getElementById('fGhiChu').value = '';
+
+  if(booking){
+    // đảm bảo giờ/hạng/xe của lịch đang sửa luôn có trong danh sách chọn,
+    // kể cả khi giờ đó đã "qua" so với thời điểm hiện tại
+    ensureOption(document.getElementById('fStart'), booking.gioBD);
+    ensureOption(document.getElementById('fEnd'), booking.gioKT);
+    document.getElementById('fHang').value = booking.hang;
+    fillXeSoOptions();
+    ensureOption(document.getElementById('fXeSo'), booking.xeSo, 'Xe '+booking.xeSo);
+    document.getElementById('fStart').value = booking.gioBD;
+    document.getElementById('fEnd').value = booking.gioKT;
+    document.getElementById('fXeSo').value = booking.xeSo;
+    document.getElementById('fGiaoVien').value = booking.giaoVien || '';
+    document.getElementById('fGhiChu').value = booking.ghiChu || '';
+  } else {
+    document.getElementById('fGiaoVien').value = '';
+    document.getElementById('fGhiChu').value = '';
+  }
+
   document.getElementById('formMsg').textContent = '';
   document.getElementById('overlayForm').classList.add('show');
 }
+
+function ensureOption(selectEl, value, label){
+  if(!value) return;
+  const exists = Array.from(selectEl.options).some(o=>o.value===String(value));
+  if(!exists){
+    const opt = document.createElement('option');
+    opt.value = value;
+    opt.textContent = label || value;
+    selectEl.appendChild(opt);
+  }
+}
+
 document.getElementById('btnCancelForm').onclick = ()=> document.getElementById('overlayForm').classList.remove('show');
 
 document.getElementById('fDate').addEventListener('change', fillTimeOptions);
@@ -533,7 +678,6 @@ function fillTimeOptions(){
   const dateVal = document.getElementById('fDate').value;
   const now = new Date();
   const isToday = dateVal === toDateStr(now);
-  const nowStr = pad(now.getHours())+':'+pad(Math.ceil(now.getMinutes()/15)*15===60?0:Math.ceil(now.getMinutes()/15)*15).replace('60','00');
   const startSel = document.getElementById('fStart');
   const endSel = document.getElementById('fEnd');
   const available = ALL_SLOTS.filter(t => !isToday || t > pad(now.getHours())+':'+pad(now.getMinutes()));
@@ -572,22 +716,40 @@ document.getElementById('btnConfirmForm').onclick = ()=>{
   }
   msg.textContent = 'Đang xử lý...';
 
-  api({action:'createBooking', date, start, end, hang, xeSo, giaoVien, ghiChu, password:adminPass}).then(res=>{
+  const action = editingId ? 'updateBooking' : 'createBooking';
+  const params = {action, date, start, end, hang, xeSo, giaoVien, ghiChu, password:adminPass};
+  if(editingId) params.id = editingId;
+
+  api(params).then(res=>{
     if(res.error === 'CONFLICT'){
       msg.textContent = 'Bị trùng, vui lòng đặt lại!';
     } else if(res.error){
       msg.textContent = res.error;
     } else {
       document.getElementById('overlayForm').classList.remove('show');
-      showSuccess(res.booking);
-      if(date===selectedDate) loadBookings();
+      showSuccess(res.booking, !!editingId);
+      loadBookings();
     }
   });
 };
 
-function showSuccess(b){
+document.getElementById('btnDeleteBooking').onclick = ()=>{
+  if(!editingId) return;
+  if(!confirm('Xoá lịch đặt xe này?')) return;
+  api({action:'deleteBooking', id:editingId, password:adminPass}).then(res=>{
+    if(res.ok){
+      document.getElementById('overlayForm').classList.remove('show');
+      loadBookings();
+    } else {
+      document.getElementById('formMsg').textContent = res.error || 'Có lỗi xảy ra';
+    }
+  });
+};
+
+function showSuccess(b, isEdit){
+  document.querySelector('#overlaySuccess h2').textContent = isEdit ? 'Cập nhật thành công' : 'Đăng ký thành công';
   document.getElementById('successBox').innerHTML =
-    '<p><b>Ngày:</b> '+b.ngay+'</p>'+
+    '<p><b>Ngày:</b> '+toDisplayDate(b.ngay)+'</p>'+
     '<p><b>Thời gian:</b> '+b.gioBD+' - '+b.gioKT+'</p>'+
     '<p><b>Hạng:</b> '+b.hang+' &nbsp; <b>Số xe:</b> '+b.xeSo+'</p>'+
     '<p><b>Giáo viên:</b> '+escapeHtml(b.giaoVien)+'</p>'+
@@ -595,6 +757,29 @@ function showSuccess(b){
   document.getElementById('overlaySuccess').classList.add('show');
 }
 document.getElementById('btnCloseSuccess').onclick = ()=> document.getElementById('overlaySuccess').classList.remove('show');
+
+/* ================== LỊCH SỬ ĐĂNG KÝ ================== */
+document.getElementById('btnHistory').onclick = ()=>{
+  document.getElementById('historyList').innerHTML = '<div class="history-empty">Đang tải...</div>';
+  document.getElementById('overlayHistory').classList.add('show');
+  api({action:'getHistory'}).then(res=>{
+    const list = res.history || [];
+    if(!list.length){
+      document.getElementById('historyList').innerHTML = '<div class="history-empty">Chưa có lịch đăng ký nào.</div>';
+      return;
+    }
+    document.getElementById('historyList').innerHTML = list.map(h=>
+      '<div class="history-item">'+
+        '<div class="h-top"><span>Điền đăng ký: '+h.ngayDangKy+'</span></div>'+
+        '<div class="h-main">'+toDisplayDate(h.ngayThue)+' &nbsp; '+h.gioBD+' - '+h.gioKT+'</div>'+
+        '<div class="h-sub">Xe '+escapeHtml(h.xeSo)+' (Hạng '+escapeHtml(h.hang)+') — GV: '+escapeHtml(h.giaoVien)+'</div>'+
+      '</div>'
+    ).join('');
+  }).catch(()=>{
+    document.getElementById('historyList').innerHTML = '<div class="history-empty">Không tải được lịch sử.</div>';
+  });
+};
+document.getElementById('btnCloseHistory').onclick = ()=> document.getElementById('overlayHistory').classList.remove('show');
 
 /* ================== KHỞI TẠO ================== */
 renderDateScroll();
