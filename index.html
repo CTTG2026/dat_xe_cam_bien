@@ -145,9 +145,8 @@
     z-index:2;
   }
   thead th{ position:sticky; z-index:3; }
-  thead tr:first-child th{ top:0; height:44px; }
-  thead tr:nth-child(2) th{ top:44px; }
-  thead tr:first-child th.time-col, thead tr:nth-child(2) th.time-col{ z-index:5; }
+  thead tr:first-child th{ top:0; }
+  thead th.time-col{ z-index:6; }
   th.group-b01{ background:var(--b01-bg); color:var(--b01); }
   th.group-b{ background:var(--b-bg); color:var(--b); }
   th.group-c1{ background:var(--c1-bg); color:var(--c1); }
@@ -404,6 +403,11 @@ function toDisplayDate(yyyyMmDd){
   if(parts.length!==3) return yyyyMmDd;
   return parts[2]+'/'+parts[1]+'/'+parts[0];
 }
+function toShortTime(hhmm){
+  const parts = (hhmm||'').split(':');
+  if(parts.length!==2) return hhmm;
+  return parseInt(parts[0],10)+'h'+parts[1];
+}
 function genSlots(){
   // Mốc giờ từ 05:00 đến 22:00, mỗi 15 phút (dùng để hiển thị dropdown & lưới)
   const out = [];
@@ -551,6 +555,17 @@ function renderGrid(){
   tbody += '</tbody>';
 
   table.innerHTML = thead + tbody;
+
+  // Căn đúng vị trí "dính" (sticky) của hàng tiêu đề số xe ngay bên dưới
+  // hàng tiêu đề Hạng, dựa theo chiều cao thực tế đã render (tránh bị lệch
+  // xuống chồng lên hàng giờ đầu tiên khi đổi cỡ chữ/khoảng cách).
+  requestAnimationFrame(()=>{
+    const theadRows = table.querySelectorAll('thead tr');
+    if(theadRows.length===2){
+      const h1 = theadRows[0].getBoundingClientRect().height;
+      theadRows[1].querySelectorAll('th').forEach(th=> th.style.top = h1+'px');
+    }
+  });
 
   // gắn sự kiện sửa số xe
   table.querySelectorAll('.edit-icon').forEach(el=>{
@@ -771,7 +786,7 @@ document.getElementById('btnHistory').onclick = ()=>{
     document.getElementById('historyList').innerHTML = list.map(h=>
       '<div class="history-item">'+
         '<div class="h-top"><span>Điền đăng ký: '+h.ngayDangKy+'</span></div>'+
-        '<div class="h-main">'+toDisplayDate(h.ngayThue)+' &nbsp; '+h.gioBD+' - '+h.gioKT+'</div>'+
+        '<div class="h-main">'+toDisplayDate(h.ngayThue)+' &nbsp; '+toShortTime(h.gioBD)+' - '+toShortTime(h.gioKT)+'</div>'+
         '<div class="h-sub">Xe '+escapeHtml(h.xeSo)+' (Hạng '+escapeHtml(h.hang)+') — GV: '+escapeHtml(h.giaoVien)+'</div>'+
       '</div>'
     ).join('');
