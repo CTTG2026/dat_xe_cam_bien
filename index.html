@@ -145,13 +145,9 @@
     left:0;
     z-index:2;
   }
-  thead th{ font-weight:800; }
+  thead th{ font-weight:800; position:sticky; top:0; z-index:3; }
+  thead th.time-col, thead th.time-col-end{ z-index:6; }
   .time-col-end{ border-left:3px solid #b89a5e; }
-  @media (min-width:601px){
-    thead th{ position:sticky; z-index:3; }
-    thead tr:first-child th{ top:0; }
-    thead th.time-col, thead th.time-col-end{ z-index:6; }
-  }
   @media (max-width:600px){
     .time-col-end{ display:none; }
   }
@@ -159,17 +155,20 @@
   th.group-b{ background:var(--b-bg); color:var(--b); }
   th.group-c1{ background:var(--c1-bg); color:var(--c1); }
   th.car-head{
-    padding:14px 8px;
-    font-size:1.2rem;
-    font-weight:900;
+    padding:8px 8px 10px;
     position:relative;
     min-width:150px;
   }
-  th.hang-head{
-    padding:12px 6px;
-    font-size:1.4rem;
+  th.car-head .hang-label{
+    font-size:0.72rem;
+    font-weight:700;
+    opacity:0.8;
+    letter-spacing:0.3px;
+  }
+  th.car-head .xe-label{
+    font-size:1.2rem;
     font-weight:900;
-    letter-spacing:0.5px;
+    margin-top:2px;
   }
   .edit-icon{
     cursor:pointer;
@@ -277,8 +276,9 @@
     .legend{ padding:8px 12px; gap:10px; font-size:0.75rem; }
     .grid-wrap{ padding:8px; }
     .time-col{ width:50px; font-size:0.6rem; }
-    th.car-head{ font-size:0.95rem; padding:10px 6px; min-width:88px; }
-    th.hang-head{ font-size:1.1rem; padding:10px 4px; }
+    th.car-head{ min-width:88px; padding:6px 4px 8px; }
+    th.car-head .hang-label{ font-size:0.6rem; }
+    th.car-head .xe-label{ font-size:0.95rem; }
     td.booked{ font-size:0.8rem; }
     .modal{ padding:16px 14px; max-width:100%; }
   }
@@ -499,21 +499,19 @@ function renderGrid(){
   hangList.forEach(h => { carsConfig[h].forEach(c => columns.push({hang:h, viTri:c.viTri, xeSo:c.xeSo, cls:classMap[h]})); });
 
   // header row 1: group by hạng
-  let thead = '<thead>';
-  thead += '<tr><th class="time-col" rowspan="2">Khung giờ</th>';
-  hangList.forEach(h=>{
-    const count = carsConfig[h].length;
-    thead += '<th class="hang-head group-'+classMap[h]+'" colspan="'+count+'">Hạng '+h+'</th>';
-  });
-  thead += '<th class="time-col time-col-end" rowspan="2">Khung giờ</th>';
-  thead += '</tr><tr>';
+  let thead = '<thead><tr>';
+  thead += '<th class="time-col">Khung giờ</th>';
   columns.forEach((col, idx)=>{
     const label = col.xeSo ? ('Xe '+col.xeSo) : '(trống)';
     const isGroupStart = idx>0 && columns[idx-1].hang !== col.hang;
     const borderStyle = isGroupStart ? ' style="border-left:3px solid #b89a5e;"' : '';
-    thead += '<th class="car-head group-'+col.cls+'"'+borderStyle+'>'+label+
-      '<span class="edit-icon" data-hang="'+col.hang+'" data-vitri="'+col.viTri+'" data-xeso="'+col.xeSo+'" title="Sửa số xe">✏️</span></th>';
+    thead += '<th class="car-head group-'+col.cls+'"'+borderStyle+'>'+
+      '<div class="hang-label">Hạng '+col.hang+'</div>'+
+      '<div class="xe-label">'+label+
+      '<span class="edit-icon" data-hang="'+col.hang+'" data-vitri="'+col.viTri+'" data-xeso="'+col.xeSo+'" title="Sửa số xe">✏️</span></div>'+
+      '</th>';
   });
+  thead += '<th class="time-col time-col-end">Khung giờ</th>';
   thead += '</tr></thead>';
 
   // build booking-per-slot map for quick lookup: key = hang|xeSo -> array[slotIndex] = bookingIndex or -1
@@ -566,18 +564,6 @@ function renderGrid(){
   tbody += '</tbody>';
 
   table.innerHTML = thead + tbody;
-
-  // Căn đúng vị trí "dính" (sticky) của hàng tiêu đề số xe ngay bên dưới
-  // hàng tiêu đề Hạng khi cuộn dọc (chỉ có hiệu lực trên máy tính, xem CSS
-  // @media min-width:601px — trên điện thoại không bật sticky nên không
-  // ảnh hưởng gì).
-  requestAnimationFrame(()=>{
-    const theadRows = table.querySelectorAll('thead tr');
-    if(theadRows.length===2){
-      const h1 = theadRows[0].getBoundingClientRect().height;
-      theadRows[1].querySelectorAll('th').forEach(th=> th.style.top = h1+'px');
-    }
-  });
 
   // gắn sự kiện sửa số xe
   table.querySelectorAll('.edit-icon').forEach(el=>{
