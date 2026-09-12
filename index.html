@@ -144,9 +144,7 @@
     left:0;
     z-index:2;
   }
-  thead th{ position:sticky; z-index:3; }
-  thead tr:first-child th{ top:0; }
-  thead th.time-col{ z-index:6; }
+  thead th{ font-weight:800; }
   th.group-b01{ background:var(--b01-bg); color:var(--b01); }
   th.group-b{ background:var(--b-bg); color:var(--b); }
   th.group-c1{ background:var(--c1-bg); color:var(--c1); }
@@ -263,7 +261,9 @@
     header img{ height:40px; }
     header h1{ font-size:1rem; }
     .toolbar{ padding:10px 12px; gap:10px; }
-    #btnAdd{ padding:10px 14px; font-size:0.9rem; flex:0 0 auto; }
+    #btnAdd{ padding:8px 12px; font-size:0.82rem; flex:0 0 auto; }
+    .btn-secondary{ padding:8px 10px; font-size:0.82rem; }
+    .btn-label{ display:none; }
     .legend{ padding:8px 12px; gap:10px; font-size:0.75rem; }
     .grid-wrap{ padding:8px; }
     .time-col{ width:58px; font-size:0.68rem; }
@@ -283,7 +283,7 @@
 
 <div class="toolbar">
   <button id="btnAdd">+ Đăng ký xe</button>
-  <button id="btnHistory" class="btn-secondary">🕘 Lịch sử</button>
+  <button id="btnHistory" class="btn-secondary">🕘 <span class="btn-label">Lịch sử</span></button>
   <div class="date-scroll" id="dateScroll"></div>
 </div>
 
@@ -554,17 +554,6 @@ function renderGrid(){
   tbody += '</tbody>';
 
   table.innerHTML = thead + tbody;
-
-  // Căn đúng vị trí "dính" (sticky) của hàng tiêu đề số xe ngay bên dưới
-  // hàng tiêu đề Hạng, dựa theo chiều cao thực tế đã render (tránh bị lệch
-  // xuống chồng lên hàng giờ đầu tiên khi đổi cỡ chữ/khoảng cách).
-  requestAnimationFrame(()=>{
-    const theadRows = table.querySelectorAll('thead tr');
-    if(theadRows.length===2){
-      const h1 = theadRows[0].getBoundingClientRect().height;
-      theadRows[1].querySelectorAll('th').forEach(th=> th.style.top = h1+'px');
-    }
-  });
 
   // gắn sự kiện sửa số xe
   table.querySelectorAll('.edit-icon').forEach(el=>{
