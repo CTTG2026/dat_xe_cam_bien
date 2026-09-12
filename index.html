@@ -151,23 +151,18 @@
   th.group-b{ background:var(--b-bg); color:var(--b); }
   th.group-c1{ background:var(--c1-bg); color:var(--c1); }
   th.car-head{
-    padding:12px 10px;
+    padding:12px 6px;
     font-size:1.05rem;
     font-weight:800;
     position:relative;
-    min-width:92px;
-    border-bottom-width:3px;
+    min-width:130px;
   }
   th.hang-head{
-    padding:12px 6px;
+    padding:10px 6px;
     font-size:1.25rem;
     font-weight:900;
     letter-spacing:0.5px;
-    border-bottom-width:3px;
   }
-  th.hang-head.group-b01{ border-bottom-color:var(--b01); }
-  th.hang-head.group-b{ border-bottom-color:var(--b); }
-  th.hang-head.group-c1{ border-bottom-color:var(--c1); }
   .edit-icon{
     cursor:pointer;
     font-size:0.7rem;
@@ -409,17 +404,17 @@ function toShortTime(hhmm){
   return parseInt(parts[0],10)+'h'+parts[1];
 }
 function genSlots(){
-  // Mốc giờ từ 05:00 đến 22:00, mỗi 15 phút (dùng để hiển thị dropdown & lưới)
+  // Mốc giờ từ 05:00 đến 22:00, mỗi 30 phút (dùng để hiển thị dropdown & lưới)
   const out = [];
   for(let h=5; h<22; h++){
-    for(let m=0; m<60; m+=15){
+    for(let m=0; m<60; m+=30){
       out.push(pad(h)+':'+pad(m));
     }
   }
   out.push('22:00');
   return out;
 }
-const ALL_SLOTS = genSlots(); // 05:00 ... 22:00 (69 mốc -> 68 ô)
+const ALL_SLOTS = genSlots(); // 05:00 ... 22:00 (35 mốc -> 34 ô, mỗi ô 30 phút)
 
 /* ================== TRẠNG THÁI ================== */
 let selectedDate = toDateStr(new Date());
@@ -501,15 +496,17 @@ function renderGrid(){
     thead += '<th class="hang-head group-'+classMap[h]+'" colspan="'+count+'">Hạng '+h+'</th>';
   });
   thead += '</tr><tr>';
-  columns.forEach(col=>{
+  columns.forEach((col, idx)=>{
     const label = col.xeSo ? ('Xe '+col.xeSo) : '(trống)';
-    thead += '<th class="car-head group-'+col.cls+'">'+label+
+    const isGroupStart = idx>0 && columns[idx-1].hang !== col.hang;
+    const borderStyle = isGroupStart ? ' style="border-left:3px solid #b89a5e;"' : '';
+    thead += '<th class="car-head group-'+col.cls+'"'+borderStyle+'>'+label+
       '<span class="edit-icon" data-hang="'+col.hang+'" data-vitri="'+col.viTri+'" data-xeso="'+col.xeSo+'" title="Sửa số xe">✏️</span></th>';
   });
   thead += '</tr></thead>';
 
   // build booking-per-slot map for quick lookup: key = hang|xeSo -> array[slotIndex] = bookingIndex or -1
-  const slotCount = ALL_SLOTS.length - 1; // 68 ô
+  const slotCount = ALL_SLOTS.length - 1; // 34 ô (mỗi ô 30 phút)
   const map = {};
   columns.forEach(col=>{
     if(!col.xeSo) return;
@@ -530,12 +527,14 @@ function renderGrid(){
     const isHour = ALL_SLOTS[s].endsWith(':00');
     tbody += '<tr'+(isHour?' class="hour-mark"':'')+'>';
     tbody += '<td class="time-col">'+ALL_SLOTS[s]+' - '+ALL_SLOTS[s+1]+'</td>';
-    columns.forEach(col=>{
-      if(!col.xeSo){ tbody += '<td class="cell-'+col.cls+'"></td>'; return; }
+    columns.forEach((col, idx)=>{
+      const isGroupStart = idx>0 && columns[idx-1].hang !== col.hang;
+      const gStyle = isGroupStart ? 'border-left:3px solid #b89a5e;' : '';
+      if(!col.xeSo){ tbody += '<td class="cell-'+col.cls+'" style="'+gStyle+'"></td>'; return; }
       const arr = map[col.hang+'|'+col.xeSo];
       const bi = arr[s];
       if(bi === -1){
-        tbody += '<td class="cell-'+col.cls+'"></td>';
+        tbody += '<td class="cell-'+col.cls+'" style="'+gStyle+'"></td>';
         return;
       }
       // chỉ vẽ ô ở vị trí bắt đầu chuỗi liên tiếp
@@ -545,7 +544,7 @@ function renderGrid(){
       while(s+span < slotCount && arr[s+span]===bi) span++;
       const b = currentBookings[bi];
       const color = colorForName(b.giaoVien || '');
-      tbody += '<td class="booked" rowspan="'+span+'" style="background:'+color+'">'+
+      tbody += '<td class="booked" rowspan="'+span+'" style="background:'+color+';'+gStyle+'">'+
         '<span class="edit-booking" data-id="'+b.id+'" title="Sửa / xoá lịch">✏️</span>'+
         escapeHtml(b.giaoVien) + (b.ghiChu ? '<span class="note">'+escapeHtml(b.ghiChu)+'</span>' : '') +
         '</td>';
