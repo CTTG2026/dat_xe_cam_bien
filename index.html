@@ -146,7 +146,15 @@
     left:0;
     z-index:2;
   }
-  thead th{ font-weight:800; position:sticky; top:0; z-index:3; }
+  thead th{
+    font-weight:800;
+    position:sticky;
+    top:0;
+    z-index:3;
+    -webkit-transform:translateZ(0);
+    transform:translateZ(0);
+    background-color:#fff;
+  }
   thead th.time-col, thead th.time-col-end{ z-index:6; }
   .time-col-end{ border-left:3px solid #b89a5e; }
   @media (max-width:600px){
@@ -296,12 +304,6 @@
   <button id="btnAdd">+ Đăng ký</button>
   <button id="btnHistory" class="btn-secondary">🕘 <span class="btn-label">Lịch sử</span></button>
   <div class="date-scroll" id="dateScroll"></div>
-</div>
-
-<div class="legend">
-  <span><i style="background:var(--b01)"></i>Hạng B.01</span>
-  <span><i style="background:var(--b)"></i>Hạng B</span>
-  <span><i style="background:var(--c1)"></i>Hạng C1</span>
 </div>
 
 <div class="grid-wrap">
