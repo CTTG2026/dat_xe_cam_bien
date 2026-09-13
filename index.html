@@ -199,26 +199,26 @@
   }
   td.booked .b-date, td.booked .b-time{
     display:block;
-    font-size:0.68rem;
-    font-weight:600;
-    opacity:0.9;
+    font-size:0.85em;
+    font-weight:700;
+    opacity:0.92;
   }
   td.booked .b-xe{
     display:block;
-    font-size:0.88rem;
+    font-size:0.95em;
     font-weight:800;
     margin-top:2px;
   }
   td.booked .b-teacher{
     display:block;
-    font-size:1.15rem;
+    font-size:1.15em;
     font-weight:900;
     margin-top:3px;
   }
   td.booked .note{
     display:block;
     font-weight:500;
-    font-size:0.72rem;
+    font-size:0.8em;
     opacity:0.92;
     margin-top:2px;
   }
@@ -305,10 +305,7 @@
     th.car-head{ min-width:88px; padding:6px 4px 8px; }
     th.car-head .hang-label{ font-size:0.6rem; }
     th.car-head .xe-label{ font-size:0.95rem; }
-    td.booked{ font-size:0.8rem; }
-    td.booked .b-date, td.booked .b-time{ font-size:0.58rem; }
-    td.booked .b-xe{ font-size:0.75rem; }
-    td.booked .b-teacher{ font-size:0.95rem; }
+    td.booked{ }
     .modal{ padding:16px 14px; max-width:100%; }
   }
 </style>
@@ -430,6 +427,11 @@ function toDisplayDate(yyyyMmDd){
   const parts = (yyyyMmDd||'').split('-');
   if(parts.length!==3) return yyyyMmDd;
   return parts[2]+'/'+parts[1]+'/'+parts[0];
+}
+function toShortDate(yyyyMmDd){
+  const parts = (yyyyMmDd||'').split('-');
+  if(parts.length!==3) return yyyyMmDd;
+  return parts[2]+'/'+parts[1];
 }
 function toShortTime(hhmm){
   const parts = (hhmm||'').split(':');
@@ -578,7 +580,7 @@ function renderGrid(){
       const color = colorForName(b.giaoVien || '');
       tbody += '<td class="booked" rowspan="'+span+'" style="background:'+color+';'+gStyle+'">'+
         '<span class="edit-booking" data-id="'+b.id+'" title="Sửa / xoá lịch">✏️</span>'+
-        '<span class="b-date">'+toDisplayDate(b.ngay)+'</span>'+
+        '<span class="b-date">'+toShortDate(b.ngay)+'</span>'+
         '<span class="b-time">'+toShortTime(b.gioBD)+'-'+toShortTime(b.gioKT)+'</span>'+
         '<span class="b-xe">Xe '+escapeHtml(b.xeSo)+'</span>'+
         '<span class="b-teacher">'+escapeHtml(b.giaoVien)+'</span>'+
@@ -591,6 +593,18 @@ function renderGrid(){
   tbody += '</tbody>';
 
   table.innerHTML = thead + tbody;
+
+  // Tự co giãn cỡ chữ trong từng ô đã đặt xe theo đúng kích cỡ thực tế của
+  // ô đó (ô càng cao/rộng — do đặt nhiều khung giờ liên tiếp — thì chữ càng
+  // to; ô nhỏ thì chữ nhỏ lại), để chữ luôn vừa khít trong ô.
+  requestAnimationFrame(()=>{
+    table.querySelectorAll('td.booked').forEach(cell=>{
+      const h = cell.clientHeight;
+      const w = cell.clientWidth;
+      const size = Math.max(9, Math.min(h/6, w/8, 22));
+      cell.style.fontSize = size+'px';
+    });
+  });
 
   // gắn sự kiện sửa số xe
   table.querySelectorAll('.edit-icon').forEach(el=>{
