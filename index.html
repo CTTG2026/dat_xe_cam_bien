@@ -197,6 +197,18 @@
     vertical-align:middle;
     position:relative;
   }
+  td.booked .b-meta{
+    display:block;
+    font-size:0.68rem;
+    font-weight:600;
+    opacity:0.9;
+    margin-bottom:3px;
+  }
+  td.booked .b-teacher{
+    display:block;
+    font-size:1.15rem;
+    font-weight:900;
+  }
   td.booked .note{
     display:block;
     font-weight:500;
@@ -288,6 +300,8 @@
     th.car-head .hang-label{ font-size:0.6rem; }
     th.car-head .xe-label{ font-size:0.95rem; }
     td.booked{ font-size:0.8rem; }
+    td.booked .b-meta{ font-size:0.58rem; }
+    td.booked .b-teacher{ font-size:0.95rem; }
     .modal{ padding:16px 14px; max-width:100%; }
   }
 </style>
@@ -555,9 +569,12 @@ function renderGrid(){
       while(s+span < slotCount && arr[s+span]===bi) span++;
       const b = currentBookings[bi];
       const color = colorForName(b.giaoVien || '');
+      const meta = toDisplayDate(b.ngay)+' · '+toShortTime(b.gioBD)+'-'+toShortTime(b.gioKT)+' · Xe '+escapeHtml(b.xeSo);
       tbody += '<td class="booked" rowspan="'+span+'" style="background:'+color+';'+gStyle+'">'+
         '<span class="edit-booking" data-id="'+b.id+'" title="Sửa / xoá lịch">✏️</span>'+
-        escapeHtml(b.giaoVien) + (b.ghiChu ? '<span class="note">'+escapeHtml(b.ghiChu)+'</span>' : '') +
+        '<span class="b-meta">'+meta+'</span>'+
+        '<span class="b-teacher">'+escapeHtml(b.giaoVien)+'</span>'+
+        (b.ghiChu ? '<span class="note">'+escapeHtml(b.ghiChu)+'</span>' : '') +
         '</td>';
     });
     tbody += '<td class="time-col time-col-end">'+toShortTime(ALL_SLOTS[s])+'-'+toShortTime(ALL_SLOTS[s+1])+'</td>';
