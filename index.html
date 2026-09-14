@@ -512,12 +512,51 @@ function loadCars(){
 }
 
 function loadBookings(){
-  document.getElementById('grid').innerHTML = '<tr><td style="padding:20px;">Đang tải lịch...</td></tr>';
-  api({action:'getBookings', date:selectedDate}).then(res=>{
-    currentBookings = res.bookings || [];
+  const cached = getFromClientCache(selectedDate);
+  if(cached){
+    currentBookings = cached;
     renderGrid();
+  } else {
+    document.getElementById('grid').innerHTML = '<tr><td style="padding:20px;">Đang tải lịch...</td></tr>';
+  }
+  api({action:'getBookings', date:selectedDate}).then(res=>{
+    const bookings = res.bookings || [];
+    setClientCache(selectedDate, bookings);
+    currentBookings = bookings;
+    renderGrid();
+    prefetchNeighborDates();
   }).catch(()=>{
-    document.getElementById('grid').innerHTML = '<tr><td style="padding:20px;color:red;">Không tải được dữ liệu. Kiểm tra kết nối / cấu hình APPS_SCRIPT_URL.</td></tr>';
+    if(!cached){
+      document.getElementById('grid').innerHTML = '<tr><td style="padding:20px;color:red;">Không tải được dữ liệu. Kiểm tra kết nối / cấu hình APPS_SCRIPT_URL.</td></tr>';
+    }
+  });
+}
+
+/* ================== CACHE PHÍA TRÌNH DUYỆT (giúp chuyển ngày mượt hơn) ================== */
+const clientBookingsCache = {}; // { 'yyyy-mm-dd': { data, ts } }
+const CACHE_TTL_MS = 25000; // 25 giây, khớp với cache 30s phía server
+
+function getFromClientCache(date){
+  const entry = clientBookingsCache[date];
+  if(entry && (Date.now()-entry.ts) < CACHE_TTL_MS) return entry.data;
+  return null;
+}
+function setClientCache(date, data){
+  clientBookingsCache[date] = { data, ts: Date.now() };
+}
+
+function prefetchNeighborDates(){
+  // Âm thầm tải trước dữ liệu của ngày liền trước/sau ngày đang xem, để khi
+  // người dùng bấm Tiếp/Trước thì thường đã có sẵn trong cache, không phải
+  // chờ Google Apps Script phản hồi nữa.
+  [-1, 1].forEach(offset=>{
+    const d = new Date(selectedDate+'T00:00:00');
+    d.setDate(d.getDate()+offset);
+    const dstr = toDateStr(d);
+    if(getFromClientCache(dstr)) return; // đã có sẵn, khỏi tải lại
+    api({action:'getBookings', date:dstr}).then(res=>{
+      setClientCache(dstr, res.bookings || []);
+    }).catch(()=>{});
   });
 }
 
