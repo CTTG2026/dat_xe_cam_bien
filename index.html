@@ -481,9 +481,23 @@ function renderDateScroll(){
 }
 
 /* ================== GỌI API ================== */
-function api(params){
+function api(params, isRetry){
   const url = APPS_SCRIPT_URL + '?' + new URLSearchParams(params).toString();
-  return fetch(url).then(r=>r.json());
+  return fetch(url)
+    .then(r=>{
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      return r.json();
+    })
+    .catch(err=>{
+      // Google Apps Script (bản miễn phí) thỉnh thoảng phản hồi chậm/gián
+      // đoạn tạm thời. Tự thử lại 1 lần sau 1 giây trước khi báo lỗi hẳn.
+      if(!isRetry){
+        return new Promise((resolve, reject)=>{
+          setTimeout(()=>{ api(params, true).then(resolve).catch(reject); }, 1000);
+        });
+      }
+      throw err;
+    });
 }
 
 function loadCars(){
